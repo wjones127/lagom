@@ -1,0 +1,173 @@
+---
+title: "The EM Algiorithm for Nonignorable Missing Data"
+author: "Will Jones"
+date: "May 15, 2016"
+output: html_document
+layout: post
+categories:
+- blog
+---
+
+Here we perform the expectation maximization (EM) algorithm using the
+weighting method proposed by Ibrahim and Lipsitz (@ibrahim1996). Let 
+$y$ be our binary response and $X$ be our predictors. With these we have
+our complete data logistic regression model $f(y \;|\; X, \beta)$  where
+ $\beta$ is a vector of parameters in the complete data model.
+
+We then specify a logistic regression model for missingness
+($R$):  $f(R \;|\; X, y, \alpha)$  where  $\alpha$ is the vector of
+parameters in the missingness model.
+
+We begin the algorithm by getting our first estimates of  $\alpha$ and  $\beta$. 
+We obtain  $\beta^{(1)}$ by estimating  $\beta$ with only the non-missing data
+(*i.e.* fit the models as if there were no missing data).
+We can then estimate  $y$ for the missing data using  $\beta^{(1)}$  and
+then use those estimates to compute  $\alpha^{(1)}$.
+
+For the E-step, we compute weights for each observation with missing response,
+representing the probability that the  $i$th observation has response value  $y_i$:
+
+<div>
+$$
+w_{i\: y_i}^{(t)} = 
+f(y_i \;|\; r_i, x_i, \alpha^{(t)}, \beta^{(t)}) =
+\frac{f(y_i \;|\; x_i, \beta^{(t)}) f(r_i \;|\; x_i, y_i, \alpha^{(t)})}{
+\sum_{y_i \in \{0,1\}}
+f(y_i \;|\; x_i, \beta^{(t)}) f(r_i \;|\; x_i, y_i, \alpha^{(t)})
+}.
+$$
+</div>
+
+The above equation is essentially an application of Bayes' theorem. We can view
+ $f(y_i \;|\; r_i, x_i, \alpha^{(t)}, \beta^{(t)})$ as the posterior density of 
+ $y_i$ given observation  $i$ is missing, where  $f(y_i \;|\; x_i, \beta^{(t)})$ is
+the prior distribution and  $f(r_i \;|\; x_i, y_i, \alpha^{(t)})$ serves as the
+likelihood.
+
+For observed responses,  $$w_{i\: y_i}^{(t)} = 1$$. Note that for each observation 
+$i$,   $$\sum_{y_i \in \{0,1\}} w_{i\; y_i} = 1.$$  We can compute
+ $$f(y_i \;|\; x_i, \beta^{(t)})$$ and  $$f(r_i \;|\; x_i, y_i, \alpha^{(t)})$$ by 
+making use of predictions from regression models. So in `R`, we can
+fit models and use the `predict()` function to get our probabilities from
+each of these models.
+
+For the M-step, we find our next estimates of the parameters,  $\alpha^{(t + 1)}$
+and  $\beta^{(t + 1)}$  by maximizing
+
+$$
+Q(\alpha, \beta \;|\; \alpha^{(t)}, \beta^{(t)}) =
+\sum_{i = 1}^n \sum_{y_i \in \{0,1\}} w_{iy_i}^{(t)} \cdot 
+l(\alpha, \beta | x_i, y_i, r_i).
+$$
+
+We do this by first by estimating  $\beta^{(t + 1)}$ using weighted maximum
+likelihood for the complete data model, and then estimating  $\alpha^{(t + 1)}$
+using the same method. To maximize  $l(\alpha, \beta | x_i, y_i, r_i)$  we 
+maximize the product of their likelihoods,
+$$l(\alpha, \beta | x_i, y_i, r_i) = l(\beta | x_i, y_i) l(\alpha | r_i, x_i, y_i),$$
+which we can maximize by maximizing each of the likelihoods separately because
+our estimates of  $\alpha$ and  $\beta$ are only dependent on each other through
+ $x$ and  $y$ This allows us to use
+any package that can fit models by maximum likelihood estimation using weights
+for the observations, which includes all of the model fitting packages we used
+in Chapter 3.
+
+In order to create the data to fit these
+models, we create an augmented data set where  each observation missing the
+response is recorded as two rows. These duplicate rows represent the two possible
+values of the response, and also contain the weights computed in the E-step.
+
+Despite its attractive features, there are few explicit explanation of how to
+actually program the EM algorithm for missing response using weights.
+
+The data can be simulated with,
+
+```{r, eval = FALSE}
+inv_logit <- function(x) 1 / (1 + exp(-x))
+n <- 1e3
+x <- rnorm(n, 0, 1)
+y <- rbinom(n, 1, prob = inv_logit(4 * x))
+r <- rbinom(n, 1, prob = inv_logit(0.3 + 0.4 * y))
+
+simulated_data <- data.frame(x, y, r)
+simulated_data$y <- ifelse(simulated_data$r == 1, NA, simulated_data$y)
+```
+
+For convenience, we define the models once as functions, so we can use them more
+than once.
+
+```{r, eval = FALSE}
+fit_r <- function(data, weights = NULL) {
+  gam(r ~ x + y_pred, data = data, family = binomial, weights = weights)
+}
+fit_y <- function(data, weights = NULL) {
+  gam(y_pred ~ x, data = data, family = binomial, weights = weights)
+}
+```
+
+First, we separate out the portions of the data that are complete and that are
+missing the response. To make our code clear and simple, we make use of the 
+`dplyr` package.
+
+```{r, eval = FALSE}
+data_complete <- simulated_data %>% filter(!is.na(y)) %>% mutate(weight = 1)
+data_missing <- simulated_data %>% filter(is.na(y)) %>% mutate(weight = NA)
+```
+
+We then start the algorithm with our initial guesses at the model for `y` and `r`:
+
+```{r, eval = FALSE}
+simulated_data$y_pred <- simulated_data$y
+model_y <- fit_model_y(data_complete)
+simulated_data$y_pred <- (predict(model_y,
+                                  newdata = simulated_data,
+                                  type = "response") > 0.5) %>% as.numeric()
+model_r <- fit_model_r(simulated_data)
+```
+
+Finally, we perform the main loop of EM algorithm iterations. We have two stopping conditions
+here: when the algorithm reaches the maximum number of iterations or when the 
+difference between the current model's AIC and the previous model's AIC
+is less than the tolerance. 
+
+```{r, eval = FALSE}
+last_aic <- AIC(model_y)
+
+for (i in 1:1000) {
+  # get prob of 1
+  y_pred <- predict(model_y, newdata = data_missing, type="response")
+  
+  # get prob missing given y
+  pred_r_y1 <- predict(model_r, 
+                       newdata = mutate(data_missing, y_pred = 1), 
+                       type="response")
+  pred_r_y0 <- predict(model_r, 
+                       newdata = mutate(data_missing, y_pred = 0),
+                       type="response")
+  
+  # Make weights
+  denom <- (y_pred * pred_r_y1) + ((1-y_pred) * pred_r_y0)
+  w_y1 <- y_pred * pred_r_y1 / denom
+  w_y2 <- (1-y_pred) * pred_r_y0 / denom
+  
+ # print(pred)
+  data_augmented <- bind_rows(data_complete,
+                        mutate(data_missing,
+                               weight = w_y1, 
+                               y_pred = 1),
+                        mutate(data_missing,
+                               weight = w_y2,
+                               y_pred = 0))
+  model_y <- fit_y(data_augmented,
+                         data_augmented$weight)
+  model_r <- fit_r(data_augmented,
+                         data_augmented$weight)
+  
+  # Check Stopping Condition
+  current_aic <- AIC(model_y)
+  print(AIC(model_y))
+  if ((i > 1) && (last_aic - current_aic < 0.0001)) break
+  last_aic <- current_aic
+}
+```
+ 
