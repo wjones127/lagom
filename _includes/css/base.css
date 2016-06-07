@@ -53,19 +53,22 @@
 ================================================== */
 	body {
 		background: #fff;
-		font: 14px/21px "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
-		color: #444;
-		-webkit-font-smoothing: antialiased; /* Fix for webkit rendering */
+		/*font: 14px/21px "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;*/
+                font: 14px/21px "Lora", Palatino, Georgia, serif;
+		color: #242b26;
+		/*-webkit-font-smoothing: antialiased; /* Fix for webkit rendering */
 		-webkit-text-size-adjust: 100%;
+                -webkit-hyphens: auto;
+                -ms-hyphens: auto;
+                hyphens: auto;
  }
 
 
 /* #Typography
 ================================================== */
 	h1, h2, h3, h4, h5, h6 {
-		color: #181818;
-		font-family: "Georgia", "Times New Roman", Helvetica, Arial, sans-serif;
-		font-weight: normal; }
+		color: #181c19;
+		font-weight: bold; }
 	h1 a, h2 a, h3 a, h4 a, h5 a, h6 a { font-weight: inherit; }
 	h1 { font-size: 46px; line-height: 50px; margin-bottom: 14px;}
 	h2 { font-size: 35px; line-height: 40px; margin-bottom: 10px; }
@@ -78,6 +81,19 @@
 	p { margin: 0 0 20px 0; }
 	p img { margin: 0; }
 	p.lead { font-size: 21px; line-height: 27px; color: #777;  }
+        p {
+            margin: auto auto 1.5rem;
+        }
+
+        p + p {
+            text-indent: 1.5rem;
+            margin-top: -1.5rem;
+        }
+
+        small {
+            font-size: 65%;
+        }
+        
 
 	em { font-style: italic; }
 	strong { font-weight: bold; color: #333; }
@@ -113,9 +129,8 @@
 	ol ol, ol ul { margin: 4px 0 5px 30px; font-size: 90%;  }
 	ul ul li, ul ol li,
 	ol ol li, ol ul li { margin-bottom: 6px; }
-	li { line-height: 18px; margin-bottom: 12px; }
+	li { line-height: inherit; margin-bottom: 12px; }
 	ul.large li { line-height: 21px; }
-	li p { line-height: 21px; }
 
 /* #Images
 ================================================== */

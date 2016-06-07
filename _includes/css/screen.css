@@ -8,17 +8,16 @@ html, body {
 }
 
 body {
-  font-size: 16px;
+  font-size: 18px;
   background-color: white;
-  color: #222222;
-  line-height: 24px;
+  color: #242b26;
+  line-height: 29px;
   margin: 0;
   border-top: 7px solid {{ site.data.theme.highlight_color }};
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: #181818;
-  font-family: "open sans", sans-serif;
+  color: #242b26;
   font-weight: 600;
 }
 
@@ -48,22 +47,47 @@ ul {
 }
 
 a {
-  color: {{ site.data.theme.highlight_color }};
+  color: {{ site.data.theme.link_color }};
   text-decoration: none;
 }
 
 a:hover {
-  color: {{ site.data.theme.highlight_color }};
+  color: {{ site.data.theme.link_color }};
   text-decoration: underline;
 }
 
 a:visited {
-  color: {{ site.data.theme.highlight_color }};
+  color: {{ site.data.theme.link_color }};
 }
 
 table {
   font-size: inherit;
-  font: 100%;
+  font: 0.8em;
+  margin: 1em auto;
+}
+
+td {
+    padding: 0em 1em;    
+}
+th {
+    padding: 0.25em 1em 0.2em;
+    text-align: left;
+}
+
+thead tr {
+    border-top: 3px solid {{ site.data.theme.highlight_color }};
+    border-bottom: 2px solid {{ site.data.theme.highlight_color }};
+    color: {{ site.data.theme.highlight_color }};
+    font-weight: bold;
+}
+tbody tr {
+    border-bottom: 1px dotted {{ site.data.theme.accent_color }};
+}
+tbody tr:last-child {
+    border-bottom: none;
+}
+tbody {
+    border-bottom: 3px solid {{ site.data.theme.highlight_color }};
 }
 
 img {
@@ -86,7 +110,7 @@ ul.posts li {
 
 ul.posts span {
   font-family: 'Lucida Console', 'Andale Mono', monospace;
-  color: #aaa;
+  color: {{ site.data.theme.accent_color }};/*#aaa;*/
   padding-right: 5px;
   font-size:14px;
 }
@@ -121,10 +145,10 @@ nav h1, nav h2 {
 }
 
 #post pre {
-  border: 1px solid #ddd;
-  background-color: #eef;
-  padding: 0 .4em;
-  margin-bottom: 20px !important;
+    font-size: 16px;
+    line-height: 20px;
+    padding: 0.4em 1em;
+    margin-bottom: 20px !important;
 }
 
 #post ul,
@@ -133,8 +157,6 @@ nav h1, nav h2 {
 }
 
 #post code {
-  border: 1px solid #ddd;
-  background-color: #eef;
   font-size: 85%;
   padding: 0 .2em;
 }
@@ -145,7 +167,7 @@ nav h1, nav h2 {
 
 .sidebar {
   padding-top: 25px;
-  font-family: "open sans", sans-serif;
+
 }
 
 .sidebar p {
@@ -157,7 +179,6 @@ nav h1, nav h2 {
 }
 
 .content {
-  font: 400 16px/22px "open sans", sans-serif;
   border-left: 1px solid #DDD;
   padding-left: 40px;
   padding-top: 25px;
@@ -218,7 +239,6 @@ nav h1, nav h2 {
 }
 
 i.fa-hn {
-  font-family: "open sans", sans-serif;
   text-align: center;
   font-size: 18px !important;
   position: relative;
