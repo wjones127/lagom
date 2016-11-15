@@ -1,6 +1,6 @@
 ---
 layout: post
-title: When Comparing Models with Visualizations, Label with Variables
+title: When Comparing Models, Label Them with Variables
 categories:
 - blog
 ---
